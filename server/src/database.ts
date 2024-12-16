@@ -1,8 +1,10 @@
 import * as mongodb from "mongodb";
 import { Employee } from "./employee";
+import { Company } from "./company";
 
 export const collections: {
     employees?: mongodb.Collection<Employee>;
+    companies?: mongodb.Collection<Company>;
 } = {};
 
 export async function connectToDatabase(uri: string) {
@@ -13,13 +15,13 @@ export async function connectToDatabase(uri: string) {
     await applySchemaValidation(db);
 
     const employeesCollection = db.collection<Employee>("employees");
+    const companiesCollection = db.collection<Company>("companies");
     collections.employees = employeesCollection;
+    collections.companies = companiesCollection;
 }
 
-// Update our existing collection with JSON schema validation so we know our documents will always match the shape of our Employee model, even if added elsewhere.
-// For more information about schema validation, see this blog series: https://www.mongodb.com/blog/post/json-schema-validation--locking-down-your-model-the-smart-way
 async function applySchemaValidation(db: mongodb.Db) {
-    const jsonSchema = {
+    const employeeJsonSchema = {
         $jsonSchema: {
             bsonType: "object",
             required: ["name", "position", "level"],
@@ -44,13 +46,42 @@ async function applySchemaValidation(db: mongodb.Db) {
         },
     };
 
-    // Try applying the modification to the collection, if the collection doesn't exist, create it
-   await db.command({
+    const companyJsonSchema = {
+        $jsonSchema: {
+            bsonType: "object",
+            required: ["name", "industry"],
+            additionalProperties: false,
+            properties: {
+                _id: {},
+                name: {
+                    bsonType: "string",
+                    description: "'name' is required and is a string",
+                },
+                industry: {
+                    bsonType: "string",
+                    description: "'industry' is required and is a string",
+                },
+            },
+        },
+    };
+
+    // Apply schema validation to the employees collection
+    await db.command({
         collMod: "employees",
-        validator: jsonSchema
+        validator: employeeJsonSchema
     }).catch(async (error: mongodb.MongoServerError) => {
         if (error.codeName === "NamespaceNotFound") {
-            await db.createCollection("employees", {validator: jsonSchema});
+            await db.createCollection("employees", { validator: employeeJsonSchema });
+        }
+    });
+
+    // Apply schema validation to the companies collection
+    await db.command({
+        collMod: "companies",
+        validator: companyJsonSchema
+    }).catch(async (error: mongodb.MongoServerError) => {
+        if (error.codeName === "NamespaceNotFound") {
+            await db.createCollection("companies", { validator: companyJsonSchema });
         }
     });
 }
