@@ -21,6 +21,7 @@ connectToDatabase(ATLAS_URI)
     app.use(cors());
     app.use("/employees", employeeRouter)
     app.use("/companies", companyRouter)
+    app.use("/search", searchRouter)
     // start the Express server
     app.listen(5200, () => {
       console.log(`Server running at http://localhost:5200...`);
@@ -30,3 +31,4 @@ connectToDatabase(ATLAS_URI)
 
   import { employeeRouter } from "./employee.routes";
   import { companyRouter } from "./company.routes";
+  import { searchRouter } from "./search.routes";
