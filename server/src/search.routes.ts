@@ -6,7 +6,7 @@ searchRouter.use(express.json());
 
 searchRouter.get("/", async (req, res) => {
   try {
-    const { keyword, type } = req.query;
+    const { keyword, type, mode } = req.query;
 
     if (!keyword || !type) {
       res.status(400).send("Missing keyword or type");
@@ -22,7 +22,7 @@ searchRouter.get("/", async (req, res) => {
           { name: searchRegex }, 
           { industry: searchRegex }
         ] 
-      }).toArray();
+      }).sort({ name: mode === "asc" ? 1 : -1 }).toArray();
     } else if (type === "employee") {
       results = await collections?.employees?.find({ 
         $or: [

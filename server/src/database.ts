@@ -18,6 +18,9 @@ export async function connectToDatabase(uri: string) {
     const companiesCollection = db.collection<Company>("companies");
     collections.employees = employeesCollection;
     collections.companies = companiesCollection;
+
+    await employeesCollection.createIndex({ name: 1, position: 1 });
+    await companiesCollection.createIndex({ name: 1 });
 }
 
 async function applySchemaValidation(db: mongodb.Db) {
