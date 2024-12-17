@@ -30,7 +30,7 @@ searchRouter.get("/", async (req, res) => {
           { position: searchRegex }, 
           { level: searchRegex }
         ] 
-      }).toArray();
+      }).sort({ name: mode === "asc" ? 1 : -1 }).toArray();
     } else {
       res.status(400).send("Invalid type");
       return;
